@@ -93,6 +93,14 @@ public class ProcessMojo extends AbstractMojo {
      */
     protected File processor;
 
+    /**
+     * If true, require all the dependencies to have license information after running
+     * completion scripts, or fail the build.
+     *
+     * @parameter
+     */
+    public boolean requireCompleteLicenseInfo;
+
     public void execute() throws MojoExecutionException {
         List<CompleterScript> comp = parseScripts(CompleterScript.class,completer);
 
@@ -121,6 +129,20 @@ public class ProcessMojo extends AbstractMojo {
             }
         } catch (ProjectBuildingException e) {
             throw new MojoExecutionException("Failed to parse into dependencies",e);
+        }
+
+        if (requireCompleteLicenseInfo) {
+            List<MavenProject> missing = new ArrayList<MavenProject>();
+            for (MavenProject d : dependencies) {
+                if (d.getLicenses().isEmpty())
+                    missing.add(d);
+            }
+            if (!missing.isEmpty()) {
+                StringBuilder buf = new StringBuilder("The following dependencies are missing license information:\n");
+                for (MavenProject p : missing)
+                    buf.append("  "+p.getGroupId()+':'+p.getArtifactId()+':'+p.getVersion()+'\n');
+                throw new MojoExecutionException(buf.toString());
+            }
         }
 
         // run the processor scripts
