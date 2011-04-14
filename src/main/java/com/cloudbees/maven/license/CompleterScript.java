@@ -6,6 +6,7 @@ import groovy.lang.Script;
 import org.apache.maven.model.License;
 import org.apache.maven.project.MavenProject;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -90,6 +91,20 @@ public abstract class CompleterScript extends Script {
         l.setName(name);
         l.setUrl(url);
         return l;
+    }
+
+    /**
+     * From the multi-licensed modules, accept one of them.
+     */
+    public void accept(String name) {
+        List<License> licenses = new ArrayList<License>(dependency.getLicenses());
+        for (License lic : licenses) {
+            if (lic.getName().equals(name)) {
+                dependency.setLicenses(new ArrayList<License>(Arrays.asList(lic)));
+                return;
+            }
+        }
+        IllegalStateException error = new IllegalStateException("Expecting " + name + " but found " + toString(licenses) + " for dependency " + toString(dependency));
     }
 
     private String toString(Collection<License> lics) {
