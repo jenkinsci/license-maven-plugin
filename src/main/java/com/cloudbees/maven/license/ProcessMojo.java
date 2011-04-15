@@ -112,6 +112,13 @@ public class ProcessMojo extends AbstractMojo {
      */
     public File generateLicenseXml;
 
+    /**
+     * If true, generate "licenses.html" as the visualization of {@code license.xml}
+     *
+     * @parameter expression="${license.generateLicenseXml}
+     */
+    public File generateLicenseHtml;
+
     public void execute() throws MojoExecutionException {
         List<CompleterScript> comp = parseScripts(CompleterScript.class,completer);
 
@@ -129,6 +136,7 @@ public class ProcessMojo extends AbstractMojo {
             Map<Artifact,MavenProject> models = new HashMap<Artifact, MavenProject>();
             Set<String> plugins = new HashSet<String>();
 
+            // TODO: push out the filtering logic to a groovy script and remove Jenkins dependency
             for (Artifact a : project.getArtifacts()) {
 
                 Artifact pom = artifactFactory.createProjectArtifact(a.getGroupId(), a.getArtifactId(), a.getVersion());
@@ -186,9 +194,21 @@ public class ProcessMojo extends AbstractMojo {
         // run the processor scripts
         List<ProcessorScript> procScripts = parseScripts(ProcessorScript.class, processor);
 
+        if (generateLicenseHtml!=null && generateLicenseXml==null) {// we need XML to be able to generate HTML
+            try {
+                generateLicenseXml = File.createTempFile("license","xml");
+                generateLicenseXml.deleteOnExit();
+            } catch (IOException e) {
+                throw new MojoExecutionException("Failed to generate a temporary file",e);
+            }
+        }
+
         if (generateLicenseXml!=null)
             procScripts.add((ProcessorScript)createShell(ProcessorScript.class).parse(getClass().getResourceAsStream("xmlgen.groovy")));
-        
+
+        if (generateLicenseHtml!=null)
+            procScripts.add((ProcessorScript)createShell(ProcessorScript.class).parse(getClass().getResourceAsStream("htmlgen.groovy")));
+
         for (ProcessorScript s : procScripts) {
             s.project = project;
             s.dependencies = dependencies;

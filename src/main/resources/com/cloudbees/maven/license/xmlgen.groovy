@@ -15,5 +15,5 @@ mojo.generateLicenseXml.withWriter { w ->
             }
         }
     }
-    log.info("Generated licenses.xml")
+    log.info("Generated ${mojo.generateLicenseXml}")
 }
