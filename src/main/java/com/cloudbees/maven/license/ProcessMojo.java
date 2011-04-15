@@ -101,6 +101,14 @@ public class ProcessMojo extends AbstractMojo {
      */
     public boolean requireCompleteLicenseInfo;
 
+    /**
+     * If true, generate "/META-INF/licenses.xml" that captures all the dependencies and its
+     * licenses.
+     *
+     * @parameter
+     */
+    public boolean generateLicenseXml;
+
     public void execute() throws MojoExecutionException {
         List<CompleterScript> comp = parseScripts(CompleterScript.class,completer);
 
@@ -148,7 +156,12 @@ public class ProcessMojo extends AbstractMojo {
         }
 
         // run the processor scripts
-        for (Script s : parseScripts(Script.class,processor)) {
+        List<Script> procScripts = parseScripts(Script.class, processor);
+
+        if (generateLicenseXml)
+            procScripts.add(createShell(Script.class).parse(getClass().getResourceAsStream("xmlgen.groovy")));
+        
+        for (Script s : procScripts) {
             s.setProperty("project",project);
             s.setProperty("dependencies",dependencies);
             s.run();
@@ -159,9 +172,7 @@ public class ProcessMojo extends AbstractMojo {
         List<T> comp = new ArrayList<T>();
         if (src !=null) {
             try {
-                CompilerConfiguration cc = new CompilerConfiguration();
-                cc.setScriptBaseClass(baseType.getName());
-                GroovyShell shell = new GroovyShell(getClass().getClassLoader(),new Binding(),cc);
+                GroovyShell shell = createShell(baseType);
                 if (src.isDirectory()) {
                     for (File script : src.listFiles())
                         comp.add(baseType.cast(shell.parse(script)));
@@ -173,5 +184,11 @@ public class ProcessMojo extends AbstractMojo {
             }
         }
         return comp;
+    }
+
+    private <T extends Script> GroovyShell createShell(Class<T> baseType) {
+        CompilerConfiguration cc = new CompilerConfiguration();
+        cc.setScriptBaseClass(baseType.getName());
+        return new GroovyShell(getClass().getClassLoader(),new Binding(),cc);
     }
 }
