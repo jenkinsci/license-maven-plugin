@@ -116,6 +116,8 @@ public class ProcessMojo extends AbstractMojo {
 
         try {
             for (Artifact a : project.getArtifacts()) {
+                if (a.isOptional())     continue;   // optional components don't ship
+
                 Artifact pom = artifactFactory.createProjectArtifact(a.getGroupId(), a.getArtifactId(), a.getVersion());
                 MavenProject model = projectBuilder.buildFromRepository(pom, project.getRemoteArtifactRepositories(), localRepository);
 
@@ -147,6 +149,7 @@ public class ProcessMojo extends AbstractMojo {
 
         // run the processor scripts
         for (Script s : parseScripts(Script.class,processor)) {
+            s.setProperty("project",project);
             s.setProperty("dependencies",dependencies);
             s.run();
         }
