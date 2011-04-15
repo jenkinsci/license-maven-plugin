@@ -11,7 +11,7 @@ import java.util.List;
  * @author Kohsuke Kawaguchi
  */
 public abstract class ProcessorScript extends Script {
-    protected Log log;
+    protected ProcessMojo mojo;
 
     protected MavenProject project;
     protected List<MavenProject> dependencies;
@@ -21,5 +21,9 @@ public abstract class ProcessorScript extends Script {
 
     public ProcessorScript(Binding binding) {
         super(binding);
+    }
+
+    public Log getLog() {
+        return mojo.getLog();
     }
 }

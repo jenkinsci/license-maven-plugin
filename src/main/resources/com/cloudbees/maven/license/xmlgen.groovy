@@ -1,6 +1,7 @@
 import groovy.xml.MarkupBuilder;
 
-new File(project.basedir,"target/classes/META-INF/licenses.xml").withWriter { w ->
+mojo.generateLicenseXml.parentFile.mkdirs()
+mojo.generateLicenseXml.withWriter { w ->
     def xml = new MarkupBuilder(w)
     xml.omitNullAttributes = true;
 

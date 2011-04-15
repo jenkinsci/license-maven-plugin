@@ -102,12 +102,12 @@ public class ProcessMojo extends AbstractMojo {
     public boolean requireCompleteLicenseInfo;
 
     /**
-     * If true, generate "/META-INF/licenses.xml" that captures all the dependencies and its
+     * If true, generate "licenses.xml" that captures all the dependencies and its
      * licenses.
      *
      * @parameter expression="${license.generateLicenseXml}
      */
-    public boolean generateLicenseXml;
+    public File generateLicenseXml;
 
     public void execute() throws MojoExecutionException {
         List<CompleterScript> comp = parseScripts(CompleterScript.class,completer);
@@ -158,13 +158,13 @@ public class ProcessMojo extends AbstractMojo {
         // run the processor scripts
         List<ProcessorScript> procScripts = parseScripts(ProcessorScript.class, processor);
 
-        if (generateLicenseXml)
+        if (generateLicenseXml!=null)
             procScripts.add((ProcessorScript)createShell(ProcessorScript.class).parse(getClass().getResourceAsStream("xmlgen.groovy")));
         
         for (ProcessorScript s : procScripts) {
             s.project = project;
             s.dependencies = dependencies;
-            s.log = getLog();
+            s.mojo = this;
             s.run();
         }
     }
