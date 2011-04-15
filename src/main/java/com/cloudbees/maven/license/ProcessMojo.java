@@ -22,7 +22,6 @@ import groovy.lang.Script;
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.artifact.factory.ArtifactFactory;
 import org.apache.maven.artifact.repository.ArtifactRepository;
-import org.apache.maven.model.License;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.project.MavenProject;
@@ -30,12 +29,16 @@ import org.apache.maven.project.MavenProjectBuilder;
 import org.apache.maven.project.MavenProjectHelper;
 import org.apache.maven.project.ProjectBuildingException;
 import org.codehaus.groovy.control.CompilerConfiguration;
+import sun.java2d.pipe.OutlineTextRenderer;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Process license information.
@@ -47,7 +50,7 @@ public class ProcessMojo extends AbstractMojo {
     /**
      * @component
      */
-    private MavenProjectHelper projectHelper;
+    public MavenProjectHelper projectHelper;
 
     /**
      * The maven project.
@@ -56,22 +59,22 @@ public class ProcessMojo extends AbstractMojo {
      * @required
      * @readonly
      */
-    protected MavenProject project;
+    public MavenProject project;
 
     /**
      * @component
      */
-    protected MavenProjectBuilder projectBuilder;
+    public MavenProjectBuilder projectBuilder;
 
     /**
      * @component
      */
-    protected ArtifactFactory artifactFactory;
+    public ArtifactFactory artifactFactory;
 
     /**
      * @parameter expression="${localRepository}"
      */
-    protected ArtifactRepository localRepository;
+    public ArtifactRepository localRepository;
 
     /**
      * Specifies a completion script to fill in / correct entries.
@@ -81,7 +84,7 @@ public class ProcessMojo extends AbstractMojo {
      *
      * @parameter
      */
-    protected File completer;
+    public File completer;
 
     /**
      * Specifies a processor script to run after the licenses are fully determined.
@@ -91,7 +94,7 @@ public class ProcessMojo extends AbstractMojo {
      *
      * @parameter
      */
-    protected File processor;
+    public File processor;
 
     /**
      * If true, require all the dependencies to have license information after running
@@ -123,11 +126,36 @@ public class ProcessMojo extends AbstractMojo {
         dependencies.add(project);
 
         try {
+            Map<Artifact,MavenProject> models = new HashMap<Artifact, MavenProject>();
+            Set<String> plugins = new HashSet<String>();
+
             for (Artifact a : project.getArtifacts()) {
-                if (a.isOptional())     continue;   // optional components don't ship
 
                 Artifact pom = artifactFactory.createProjectArtifact(a.getGroupId(), a.getArtifactId(), a.getVersion());
                 MavenProject model = projectBuilder.buildFromRepository(pom, project.getRemoteArtifactRepositories(), localRepository);
+
+                if (model.getPackaging().equals("hpi"))
+                    plugins.add(a.getId());
+
+                if (a.isOptional())     continue;   // optional components don't ship
+
+                models.put(a,model);
+            }
+
+            OUTER:
+            for (Artifact a : models.keySet()) {
+                MavenProject model = models.get(a);
+
+                if(a.getDependencyTrail().size() >= 1 && plugins.contains(a.getDependencyTrail().get(1)))
+                    continue;   // ignore transitive dependencies through other plugins
+
+                // if the dependency goes through jenkins core, we don't need to bundle it in the war
+                // because jenkins-core comes in the <provided> scope, I think this is a bug in Maven that it puts such
+                // dependencies into the artifact list.
+                for (String trail : a.getDependencyTrail()) {
+                    if (trail.contains(":hudson-core:") || trail.contains(":jenkins-core:"))
+                        continue OUTER;
+                }
 
                 for (CompleterScript s : comp) {
                     // let the completion script intercept and process the licenses
