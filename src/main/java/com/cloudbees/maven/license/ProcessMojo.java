@@ -105,7 +105,7 @@ public class ProcessMojo extends AbstractMojo {
      * If true, generate "/META-INF/licenses.xml" that captures all the dependencies and its
      * licenses.
      *
-     * @parameter
+     * @parameter expression="${license.generateLicenseXml}
      */
     public boolean generateLicenseXml;
 
@@ -156,14 +156,15 @@ public class ProcessMojo extends AbstractMojo {
         }
 
         // run the processor scripts
-        List<Script> procScripts = parseScripts(Script.class, processor);
+        List<ProcessorScript> procScripts = parseScripts(ProcessorScript.class, processor);
 
         if (generateLicenseXml)
-            procScripts.add(createShell(Script.class).parse(getClass().getResourceAsStream("xmlgen.groovy")));
+            procScripts.add((ProcessorScript)createShell(ProcessorScript.class).parse(getClass().getResourceAsStream("xmlgen.groovy")));
         
-        for (Script s : procScripts) {
-            s.setProperty("project",project);
-            s.setProperty("dependencies",dependencies);
+        for (ProcessorScript s : procScripts) {
+            s.project = project;
+            s.dependencies = dependencies;
+            s.log = getLog();
             s.run();
         }
     }

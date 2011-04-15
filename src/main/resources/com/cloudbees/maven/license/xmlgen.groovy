@@ -14,4 +14,5 @@ new File(project.basedir,"target/classes/META-INF/licenses.xml").withWriter { w 
             }
         }
     }
+    log.info("Generated licenses.xml")
 }
