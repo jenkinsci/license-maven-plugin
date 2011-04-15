@@ -34,12 +34,10 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Set;
 
 /**
  * Process license information.
@@ -83,7 +81,7 @@ public class ProcessMojo extends AbstractMojo {
      * This can be either a file or a directory. If it's a directory
      * all the files in it are assumed to be completer scripts.
      *
-     * @parameter
+     * @parameter expression="${license.script}
      */
     public File script;
 
@@ -113,7 +111,7 @@ public class ProcessMojo extends AbstractMojo {
     /**
      * If true, generate "licenses.html" as the visualization of {@code license.xml}
      *
-     * @parameter expression="${license.generateLicenseXml}
+     * @parameter expression="${license.generateLicenseHtml}
      */
     public File generateLicenseHtml;
 
@@ -132,10 +130,10 @@ public class ProcessMojo extends AbstractMojo {
         }
 
         if (generateLicenseXml!=null)
-            comp.add((LicenseScript) shell.parse(getClass().getResourceAsStream("xmlgen.groovy")));
+            comp.add((LicenseScript) shell.parse(getClass().getResourceAsStream("xmlgen.groovy"),"xmlgen.groovy"));
 
         if (generateLicenseHtml!=null)
-            comp.add((LicenseScript) shell.parse(getClass().getResourceAsStream("htmlgen.groovy")));
+            comp.add((LicenseScript) shell.parse(getClass().getResourceAsStream("htmlgen.groovy"),"htmlgen.groovy"));
 
         if (inlineScript!=null)
             comp.add((LicenseScript)shell.parse(inlineScript,"inlineScript"));
