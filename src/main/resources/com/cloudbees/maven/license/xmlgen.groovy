@@ -1,6 +1,6 @@
 import groovy.xml.MarkupBuilder;
 
-mojo.generateLicenseXml.parentFile.mkdirs()
+mojo.generateLicenseXml.parentFile?.mkdirs()
 mojo.generateLicenseXml.withWriter { w ->
     def xml = new MarkupBuilder(w)
     xml.omitNullAttributes = true;
