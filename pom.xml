@@ -19,6 +19,12 @@
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
   </properties>
+  
+  <scm>
+    <connection>scm:git:git@github.com:cloudbees/maven-license-plugin.git</connection>
+    <developerConnection>scm:git:git@github.com:cloudbees/maven-license-plugin.git</developerConnection>
+  </scm>
+    
 
   <dependencies>
     <dependency>
