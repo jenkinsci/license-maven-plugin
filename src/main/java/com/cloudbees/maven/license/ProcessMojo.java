@@ -35,8 +35,10 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 
 /**
@@ -76,7 +78,7 @@ public class ProcessMojo extends AbstractMojo {
     public ArtifactRepository localRepository;
 
     /**
-     * Specifies a completion script to fill in / correct entries.
+     * Specifies completion/generation/filtering scripts.
      *
      * This can be either a file or a directory. If it's a directory
      * all the files in it are assumed to be completer scripts.
@@ -84,6 +86,13 @@ public class ProcessMojo extends AbstractMojo {
      * @parameter
      */
     public File script;
+
+    /**
+     * Specifies completion/generation/filtering script inline.
+     *
+     * @parameter
+     */
+    public String inlineScript;
 
     /**
      * If true, require all the dependencies to have license information after running
@@ -109,7 +118,9 @@ public class ProcessMojo extends AbstractMojo {
     public File generateLicenseHtml;
 
     public void execute() throws MojoExecutionException {
-        List<LicenseScript> comp = parseScripts(script);
+        GroovyShell shell = createShell(LicenseScript.class);
+
+        List<LicenseScript> comp = parseScripts(script, shell);
 
         if (generateLicenseHtml!=null && generateLicenseXml==null) {// we need XML to be able to generate HTML
             try {
@@ -121,15 +132,19 @@ public class ProcessMojo extends AbstractMojo {
         }
 
         if (generateLicenseXml!=null)
-            comp.add((LicenseScript)createShell(LicenseScript.class).parse(getClass().getResourceAsStream("xmlgen.groovy")));
+            comp.add((LicenseScript) shell.parse(getClass().getResourceAsStream("xmlgen.groovy")));
 
         if (generateLicenseHtml!=null)
-            comp.add((LicenseScript)createShell(LicenseScript.class).parse(getClass().getResourceAsStream("htmlgen.groovy")));
+            comp.add((LicenseScript) shell.parse(getClass().getResourceAsStream("htmlgen.groovy")));
+
+        if (inlineScript!=null)
+            comp.add((LicenseScript)shell.parse(inlineScript,"inlineScript"));
 
         for (LicenseScript s : comp) {
+            s.project = project;
+            s.mojo = this;
             s.run();    // setup
         }
-
 
         List<MavenProject> dependencies = new ArrayList<MavenProject>();
 
@@ -141,44 +156,33 @@ public class ProcessMojo extends AbstractMojo {
 
         try {
             Map<Artifact,MavenProject> models = new HashMap<Artifact, MavenProject>();
-            Set<String> plugins = new HashSet<String>();
 
-            // TODO: push out the filtering logic to a groovy script and remove Jenkins dependency
             for (Artifact a : project.getArtifacts()) {
-
                 Artifact pom = artifactFactory.createProjectArtifact(a.getGroupId(), a.getArtifactId(), a.getVersion());
                 MavenProject model = projectBuilder.buildFromRepository(pom, project.getRemoteArtifactRepositories(), localRepository);
-
-                if (model.getPackaging().equals("hpi"))
-                    plugins.add(a.getId());
-
-                if (a.isOptional())     continue;   // optional components don't ship
-
                 models.put(a,model);
             }
 
-            OUTER:
-            for (Artifact a : models.keySet()) {
-                MavenProject model = models.get(a);
-
-                if(a.getDependencyTrail().size() >= 1 && plugins.contains(a.getDependencyTrail().get(1)))
-                    continue;   // ignore transitive dependencies through other plugins
-
-                // if the dependency goes through jenkins core, we don't need to bundle it in the war
-                // because jenkins-core comes in the <provided> scope, I think this is a bug in Maven that it puts such
-                // dependencies into the artifact list.
-                for (String trail : a.getDependencyTrail()) {
-                    if (trail.contains(":hudson-core:") || trail.contains(":jenkins-core:"))
-                        continue OUTER;
-                }
-
-                    // let the completion script intercept and process the licenses
-                for (LicenseScript s : comp) {
-                    s.runCompleter(new CompleterDelegate(model, project));
-                }
-
-                dependencies.add(model);
+            // filter them out
+            for (LicenseScript s : comp) {
+                s.runFilter(new FilterDelegate(models));
             }
+
+            // filter out optional components
+            for (Iterator<Entry<Artifact, MavenProject>> itr = models.entrySet().iterator(); itr.hasNext();) {
+                Entry<Artifact, MavenProject> e =  itr.next();
+                if (e.getKey().isOptional())
+                    itr.remove();
+            }
+
+            for (MavenProject e : models.values()) {
+                // let the completion script intercept and process the licenses
+                for (LicenseScript s : comp) {
+                    s.runCompleter(new CompleterDelegate(e, project));
+                }
+            }
+
+            dependencies.addAll(models.values());
         } catch (ProjectBuildingException e) {
             throw new MojoExecutionException("Failed to parse into dependencies",e);
         }
@@ -198,15 +202,14 @@ public class ProcessMojo extends AbstractMojo {
         }
 
         for (LicenseScript s : comp) {
-            s.runGenerator(new GeneratorDelegate(this, project, dependencies));
+            s.runGenerator(new GeneratorDelegate(dependencies));
         }
     }
 
-    private List<LicenseScript> parseScripts(File src) throws MojoExecutionException {
+    private List<LicenseScript> parseScripts(File src, GroovyShell shell) throws MojoExecutionException {
         List<LicenseScript> comp = new ArrayList<LicenseScript>();
         if (src !=null) {
             try {
-                GroovyShell shell = createShell(LicenseScript.class);
                 if (src.isDirectory()) {
                     for (File script : src.listFiles())
                         comp.add((LicenseScript)shell.parse(script));
