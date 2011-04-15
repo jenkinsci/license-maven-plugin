@@ -1,7 +1,5 @@
 package com.cloudbees.maven.license;
 
-import groovy.lang.Binding;
-import groovy.lang.Script;
 import org.apache.maven.plugin.logging.Log;
 import org.apache.maven.project.MavenProject;
 
@@ -10,17 +8,16 @@ import java.util.List;
 /**
  * @author Kohsuke Kawaguchi
  */
-public abstract class ProcessorScript extends Script {
+public class GeneratorDelegate {
     protected ProcessMojo mojo;
 
     protected MavenProject project;
     protected List<MavenProject> dependencies;
 
-    public ProcessorScript() {
-    }
-
-    public ProcessorScript(Binding binding) {
-        super(binding);
+    protected GeneratorDelegate(ProcessMojo mojo, MavenProject project, List<MavenProject> dependencies) {
+        this.mojo = mojo;
+        this.project = project;
+        this.dependencies = dependencies;
     }
 
     public Log getLog() {

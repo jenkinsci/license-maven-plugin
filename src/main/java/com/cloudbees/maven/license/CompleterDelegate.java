@@ -1,8 +1,6 @@
 package com.cloudbees.maven.license;
 
-import groovy.lang.Binding;
 import groovy.lang.Closure;
-import groovy.lang.Script;
 import org.apache.maven.model.License;
 import org.apache.maven.project.MavenProject;
 
@@ -19,14 +17,12 @@ import static java.util.Collections.*;
  *
  * @author Kohsuke Kawaguchi
  */
-public abstract class CompleterScript extends Script {
+public class CompleterDelegate {
     public MavenProject dependency, project;
 
-    public CompleterScript() {
-    }
-
-    public CompleterScript(Binding binding) {
-        super(binding);
+    public CompleterDelegate(MavenProject dependency, MavenProject project) {
+        this.dependency = dependency;
+        this.project = project;
     }
 
     /**

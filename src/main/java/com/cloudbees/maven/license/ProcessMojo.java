@@ -29,7 +29,6 @@ import org.apache.maven.project.MavenProjectBuilder;
 import org.apache.maven.project.MavenProjectHelper;
 import org.apache.maven.project.ProjectBuildingException;
 import org.codehaus.groovy.control.CompilerConfiguration;
-import sun.java2d.pipe.OutlineTextRenderer;
 
 import java.io.File;
 import java.io.IOException;
@@ -84,17 +83,7 @@ public class ProcessMojo extends AbstractMojo {
      *
      * @parameter
      */
-    public File completer;
-
-    /**
-     * Specifies a processor script to run after the licenses are fully determined.
-     *
-     * This can be either a file or a directory. If it's a directory
-     * all the files in it are assumed to be completer scripts.
-     *
-     * @parameter
-     */
-    public File processor;
+    public File script;
 
     /**
      * If true, require all the dependencies to have license information after running
@@ -120,15 +109,33 @@ public class ProcessMojo extends AbstractMojo {
     public File generateLicenseHtml;
 
     public void execute() throws MojoExecutionException {
-        List<CompleterScript> comp = parseScripts(CompleterScript.class,completer);
+        List<LicenseScript> comp = parseScripts(script);
+
+        if (generateLicenseHtml!=null && generateLicenseXml==null) {// we need XML to be able to generate HTML
+            try {
+                generateLicenseXml = File.createTempFile("license","xml");
+                generateLicenseXml.deleteOnExit();
+            } catch (IOException e) {
+                throw new MojoExecutionException("Failed to generate a temporary file",e);
+            }
+        }
+
+        if (generateLicenseXml!=null)
+            comp.add((LicenseScript)createShell(LicenseScript.class).parse(getClass().getResourceAsStream("xmlgen.groovy")));
+
+        if (generateLicenseHtml!=null)
+            comp.add((LicenseScript)createShell(LicenseScript.class).parse(getClass().getResourceAsStream("htmlgen.groovy")));
+
+        for (LicenseScript s : comp) {
+            s.run();    // setup
+        }
+
 
         List<MavenProject> dependencies = new ArrayList<MavenProject>();
 
         // run against the project itself
-        for (CompleterScript s : comp) {
-            s.dependency = project;
-            s.project = project;
-            s.run();
+        for (LicenseScript s : comp) {
+            s.runCompleter(new CompleterDelegate(project, project));
         }
         dependencies.add(project);
 
@@ -165,10 +172,9 @@ public class ProcessMojo extends AbstractMojo {
                         continue OUTER;
                 }
 
-                for (CompleterScript s : comp) {
                     // let the completion script intercept and process the licenses
-                    s.dependency = model;
-                    s.run();
+                for (LicenseScript s : comp) {
+                    s.runCompleter(new CompleterDelegate(model, project));
                 }
 
                 dependencies.add(model);
@@ -191,42 +197,21 @@ public class ProcessMojo extends AbstractMojo {
             }
         }
 
-        // run the processor scripts
-        List<ProcessorScript> procScripts = parseScripts(ProcessorScript.class, processor);
-
-        if (generateLicenseHtml!=null && generateLicenseXml==null) {// we need XML to be able to generate HTML
-            try {
-                generateLicenseXml = File.createTempFile("license","xml");
-                generateLicenseXml.deleteOnExit();
-            } catch (IOException e) {
-                throw new MojoExecutionException("Failed to generate a temporary file",e);
-            }
-        }
-
-        if (generateLicenseXml!=null)
-            procScripts.add((ProcessorScript)createShell(ProcessorScript.class).parse(getClass().getResourceAsStream("xmlgen.groovy")));
-
-        if (generateLicenseHtml!=null)
-            procScripts.add((ProcessorScript)createShell(ProcessorScript.class).parse(getClass().getResourceAsStream("htmlgen.groovy")));
-
-        for (ProcessorScript s : procScripts) {
-            s.project = project;
-            s.dependencies = dependencies;
-            s.mojo = this;
-            s.run();
+        for (LicenseScript s : comp) {
+            s.runGenerator(new GeneratorDelegate(this, project, dependencies));
         }
     }
 
-    private <T extends Script> List<T> parseScripts(Class<T> baseType, File src) throws MojoExecutionException {
-        List<T> comp = new ArrayList<T>();
+    private List<LicenseScript> parseScripts(File src) throws MojoExecutionException {
+        List<LicenseScript> comp = new ArrayList<LicenseScript>();
         if (src !=null) {
             try {
-                GroovyShell shell = createShell(baseType);
+                GroovyShell shell = createShell(LicenseScript.class);
                 if (src.isDirectory()) {
                     for (File script : src.listFiles())
-                        comp.add(baseType.cast(shell.parse(script)));
+                        comp.add((LicenseScript)shell.parse(script));
                 } else {
-                    comp.add(baseType.cast(shell.parse(src)));
+                    comp.add((LicenseScript)shell.parse(src));
                 }
             } catch (IOException e) {
                 throw new MojoExecutionException("Failed to parse the script: "+ src,e);
