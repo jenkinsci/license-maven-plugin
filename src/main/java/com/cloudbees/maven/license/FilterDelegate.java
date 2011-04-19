@@ -6,6 +6,12 @@ import org.apache.maven.project.MavenProject;
 import java.util.Map;
 
 /**
+ * Base class for filter scripts that define convenience methods.
+ *
+ * <p>
+ * Filter phase gets all the resolved dependencies and can add/remove some dependencies
+ * from the final list.
+ *
  * @author Kohsuke Kawaguchi
  */
 public class FilterDelegate {

@@ -15,6 +15,10 @@ import static java.util.Collections.*;
 /**
  * Base class for completer scripts that define convenience methods.
  *
+ * <p>
+ * The completion phase runs on each dependency to complete the missing license information,
+ * accept one from dual-licensed libraries, etc.
+ *
  * @author Kohsuke Kawaguchi
  */
 public class CompleterDelegate {
