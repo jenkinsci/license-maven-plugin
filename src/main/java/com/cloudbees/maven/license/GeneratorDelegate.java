@@ -1,6 +1,5 @@
 package com.cloudbees.maven.license;
 
-import org.apache.maven.plugin.logging.Log;
 import org.apache.maven.project.MavenProject;
 
 import java.util.List;
