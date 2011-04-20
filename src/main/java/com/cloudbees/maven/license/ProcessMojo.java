@@ -38,6 +38,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 
 /**
  * Process license information.
@@ -155,7 +156,7 @@ public class ProcessMojo extends AbstractMojo {
         try {
             Map<Artifact,MavenProject> models = new HashMap<Artifact, MavenProject>();
 
-            for (Artifact a : project.getArtifacts()) {
+            for (Artifact a : (Set<Artifact>)project.getArtifacts()) {
                 Artifact pom = artifactFactory.createProjectArtifact(a.getGroupId(), a.getArtifactId(), a.getVersion());
                 MavenProject model = projectBuilder.buildFromRepository(pom, project.getRemoteArtifactRepositories(), localRepository);
                 models.put(a,model);
