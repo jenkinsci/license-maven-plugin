@@ -119,7 +119,7 @@ public class ProcessMojo extends AbstractMojo {
     /**
      * Forbidden switch to disable and bypass all the checks.
      *
-     * @param expression="${license.disableCheck}
+     * @parameter expression="${license.disableCheck}
      */
     public boolean disableCheck;
 
@@ -209,7 +209,7 @@ public class ProcessMojo extends AbstractMojo {
                         buf.append(" -> "+p.getGroupId()+':'+p.getArtifactId()+':'+p.getVersion());
                     buf.append('\n');
                 }
-                buf.append("Add/update your completion script to fill them, or run with -Dlicense.disableCheck to bypass the check.");
+                buf.append("\nAdd/update your completion script to fill them, or run with -Dlicense.disableCheck to bypass the check.");
                 throw new MojoExecutionException(buf.toString());
             }
         }
