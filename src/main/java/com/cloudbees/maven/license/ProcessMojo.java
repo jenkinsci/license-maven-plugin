@@ -116,7 +116,16 @@ public class ProcessMojo extends AbstractMojo {
      */
     public File generateLicenseHtml;
 
+    /**
+     * Forbidden switch to disable and bypass all the checks.
+     *
+     * @param expression="${license.disableCheck}
+     */
+    public boolean disableCheck;
+
     public void execute() throws MojoExecutionException {
+        if (disableCheck)   return;
+
         GroovyShell shell = createShell(LicenseScript.class);
 
         List<LicenseScript> comp = parseScripts(script, shell);
@@ -196,6 +205,7 @@ public class ProcessMojo extends AbstractMojo {
                 StringBuilder buf = new StringBuilder("The following dependencies are missing license information:\n");
                 for (MavenProject p : missing)
                     buf.append("  "+p.getGroupId()+':'+p.getArtifactId()+':'+p.getVersion()+'\n');
+                buf.append("Add/update your completion script to fill them, or run with -Dlicense.disableCheck to bypass the check.");
                 throw new MojoExecutionException(buf.toString());
             }
         }
