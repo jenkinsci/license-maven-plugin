@@ -203,8 +203,12 @@ public class ProcessMojo extends AbstractMojo {
             }
             if (!missing.isEmpty()) {
                 StringBuilder buf = new StringBuilder("The following dependencies are missing license information:\n");
-                for (MavenProject p : missing)
-                    buf.append("  "+p.getGroupId()+':'+p.getArtifactId()+':'+p.getVersion()+'\n');
+                for (MavenProject p : missing) {
+                    buf.append("  "+p.getGroupId()+':'+p.getArtifactId()+':'+p.getVersion());
+                    for (p=p.getParent(); p!=null; p=p.getParent())
+                        buf.append(" -> "+p.getGroupId()+':'+p.getArtifactId()+':'+p.getVersion());
+                    buf.append('\n');
+                }
                 buf.append("Add/update your completion script to fill them, or run with -Dlicense.disableCheck to bypass the check.");
                 throw new MojoExecutionException(buf.toString());
             }
