@@ -8,6 +8,10 @@ Templates t = TransformerFactory.newInstance().newTemplates(new StreamSource(moj
 
 generate {
     mojo.generateLicenseHtml.parentFile?.mkdirs()
-    t.newTransformer().transform(new StreamSource(mojo.generateLicenseXml), new StreamResult(mojo.generateLicenseHtml));
+    def tr = t.newTransformer()
+    tr.setParameter("groupId", mojo.project.groupId)
+    tr.setParameter("artifactId", mojo.project.artifactId)
+    tr.setParameter("version", mojo.project.version)
+    tr.transform(new StreamSource(mojo.generateLicenseXml), new StreamResult(mojo.generateLicenseHtml));
     log.info("Generated ${mojo.generateLicenseHtml}")
 }

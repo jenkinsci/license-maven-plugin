@@ -6,7 +6,7 @@ generate {
         def xml = new MarkupBuilder(w)
         xml.omitNullAttributes = true;
 
-        xml.'l:dependencies'('xmlns:l':'licenses') {
+        xml.'l:dependencies'('xmlns:l':'licenses', groupId:mojo.project.groupId, artifactId:mojo.project.artifactId, version:mojo.project.version) {
             dependencies.each { d ->
                 'l:dependency'(name:d.name, groupId:d.groupId, artifactId:d.artifactId, version:d.version, url:d.url) {
                     'l:description'(d.description)

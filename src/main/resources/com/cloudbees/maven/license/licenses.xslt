@@ -1,10 +1,16 @@
 <?xml version="1.0"?>
 <xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform" xmlns:l="licenses">
+  <xsl:param name="groupId" />
+  <xsl:param name="artifactId" />
+  <xsl:param name="version" />
 
   <xsl:template match="/">
     <html>
       <body>
-        <table>
+        <h1>
+          License of <xsl:value-of select="$groupId"/>:<xsl:value-of select="$artifactId"/>:<xsl:value-of select="$version"/>
+        </h1>
+        <table border="1">
           <tr>
             <th>Name</th>
             <th>Maven ID</th>
