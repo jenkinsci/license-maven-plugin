@@ -123,6 +123,13 @@ public class ProcessMojo extends AbstractMojo {
      */
     public boolean disableCheck;
 
+    /**
+     * If true, attach the generated XML/HTML as artifacts (to be installed/deployed to Maven repositories.)
+     *
+     * @parameter expression="${license.attach}
+     */
+    public boolean attach;
+
     public void execute() throws MojoExecutionException {
         if (disableCheck)   return;
 
@@ -216,6 +223,13 @@ public class ProcessMojo extends AbstractMojo {
 
         for (LicenseScript s : comp) {
             s.runGenerator(new GeneratorDelegate(dependencies));
+        }
+
+        if (attach) {
+            if (generateLicenseXml!=null)
+                projectHelper.attachArtifact( project, "license.xml", null, generateLicenseXml );
+            if (generateLicenseHtml!=null)
+                projectHelper.attachArtifact( project, "license.html", null, generateLicenseHtml );
         }
     }
 
