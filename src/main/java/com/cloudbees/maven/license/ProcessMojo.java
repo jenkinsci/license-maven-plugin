@@ -222,12 +222,16 @@ public class ProcessMojo extends AbstractMojo {
         }
 
         for (LicenseScript s : comp) {
+            System.out.println("About to runGenerator on " + s);
             s.runGenerator(new GeneratorDelegate(dependencies));
         }
+        System.out.println("Done running generators.  Attach? " + attach);
 
         if (attach) {
+            System.out.println("Attaching " + generateLicenseXml);
             if (generateLicenseXml!=null)
                 projectHelper.attachArtifact( project, "license.xml", null, generateLicenseXml );
+            System.out.println("Attaching " + generateLicenseHtml);
             if (generateLicenseHtml!=null)
                 projectHelper.attachArtifact( project, "license.html", null, generateLicenseHtml );
         }
