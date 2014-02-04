@@ -68,7 +68,7 @@ public class CompleterDelegate {
         List<License> actual = dependency.getLicenses();
         IllegalStateException error = new IllegalStateException("Expecting " + toString(expected) + " but found " + toString(actual) + " for dependency " + toString(dependency));
 
-        if (expected.size()!= actual.size())
+        if ((expected.size() != 0) && (expected.size()!= actual.size()))
             throw error;
 
         OUTER:
