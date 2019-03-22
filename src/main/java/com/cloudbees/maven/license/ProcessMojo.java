@@ -169,38 +169,37 @@ public class ProcessMojo extends AbstractMojo {
         }
         dependencies.add(project);
 
-        try {
-            Map<Artifact,MavenProject> models = new HashMap<Artifact, MavenProject>();
+        Map<Artifact,MavenProject> models = new HashMap<Artifact, MavenProject>();
 
-            for (Artifact a : (Set<Artifact>)project.getArtifacts()) {
-                Artifact pom = artifactFactory.createProjectArtifact(a.getGroupId(), a.getArtifactId(), a.getVersion());
-                MavenProject model = projectBuilder.buildFromRepository(pom, project.getRemoteArtifactRepositories(), localRepository);
-                models.put(a,model);
+        for (Artifact a : (Set<Artifact>)project.getArtifacts()) {
+            Artifact pom = artifactFactory.createProjectArtifact(a.getGroupId(), a.getArtifactId(), a.getVersion());
+            try {
+                models.put(a, projectBuilder.buildFromRepository(pom, project.getRemoteArtifactRepositories(), localRepository));
+            } catch (ProjectBuildingException x) {
+                getLog().warn(x.getMessage());
             }
-
-            // filter them out
-            for (LicenseScript s : comp) {
-                s.runFilter(new FilterDelegate(models));
-            }
-
-            // filter out optional components
-            for (Iterator<Entry<Artifact, MavenProject>> itr = models.entrySet().iterator(); itr.hasNext();) {
-                Entry<Artifact, MavenProject> e =  itr.next();
-                if (e.getKey().isOptional())
-                    itr.remove();
-            }
-
-            for (MavenProject e : models.values()) {
-                // let the completion script intercept and process the licenses
-                for (LicenseScript s : comp) {
-                    s.runCompleter(new CompleterDelegate(e, project));
-                }
-            }
-
-            dependencies.addAll(models.values());
-        } catch (ProjectBuildingException e) {
-            throw new MojoExecutionException("Failed to parse into dependencies",e);
         }
+
+        // filter them out
+        for (LicenseScript s : comp) {
+            s.runFilter(new FilterDelegate(models));
+        }
+
+        // filter out optional components
+        for (Iterator<Entry<Artifact, MavenProject>> itr = models.entrySet().iterator(); itr.hasNext();) {
+            Entry<Artifact, MavenProject> e =  itr.next();
+            if (e.getKey().isOptional())
+                itr.remove();
+        }
+
+        for (MavenProject e : models.values()) {
+            // let the completion script intercept and process the licenses
+            for (LicenseScript s : comp) {
+                s.runCompleter(new CompleterDelegate(e, project));
+            }
+        }
+
+        dependencies.addAll(models.values());
 
         if (requireCompleteLicenseInfo) {
             List<MavenProject> missing = new ArrayList<MavenProject>();
