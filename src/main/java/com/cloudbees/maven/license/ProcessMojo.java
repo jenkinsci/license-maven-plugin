@@ -32,12 +32,15 @@ import org.codehaus.groovy.control.CompilerConfiguration;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.StringReader;
+import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Objects;
 import java.util.Set;
 
 /**
@@ -146,11 +149,20 @@ public class ProcessMojo extends AbstractMojo {
             }
         }
 
-        if (generateLicenseXml!=null)
-            comp.add((LicenseScript) shell.parse(getClass().getResourceAsStream("xmlgen.groovy"),"xmlgen.groovy"));
+        if (generateLicenseXml!=null) {
+            try {
+                comp.add((LicenseScript) shell.parse(getClass().getResource("xmlgen.groovy").toURI()));
+            } catch (URISyntaxException | IOException e) {
+                throw new MojoExecutionException("Failed to retrieve xmlgen.groovy",e);
+            }
+        }
 
         if (generateLicenseHtml!=null)
-            comp.add((LicenseScript) shell.parse(getClass().getResourceAsStream("htmlgen.groovy"),"htmlgen.groovy"));
+            try {
+                comp.add((LicenseScript) shell.parse(getClass().getResource("htmlgen.groovy").toURI()));
+            } catch (URISyntaxException | IOException e) {
+                throw new MojoExecutionException("Failed to retrieve htmlgen.groovy", e);
+            }
 
         if (inlineScript!=null)
             comp.add((LicenseScript)shell.parse(inlineScript,"inlineScript"));
@@ -186,11 +198,7 @@ public class ProcessMojo extends AbstractMojo {
         }
 
         // filter out optional components
-        for (Iterator<Entry<Artifact, MavenProject>> itr = models.entrySet().iterator(); itr.hasNext();) {
-            Entry<Artifact, MavenProject> e =  itr.next();
-            if (e.getKey().isOptional())
-                itr.remove();
-        }
+        models.entrySet().removeIf(e -> e.getKey().isOptional());
 
         for (MavenProject e : models.values()) {
             // let the completion script intercept and process the licenses
@@ -237,7 +245,7 @@ public class ProcessMojo extends AbstractMojo {
         if (src !=null) {
             try {
                 if (src.isDirectory()) {
-                    for (File script : src.listFiles())
+                    for (File script : Objects.requireNonNull(src.listFiles()))
                         comp.add((LicenseScript)shell.parse(script));
                 } else {
                     comp.add((LicenseScript)shell.parse(src));

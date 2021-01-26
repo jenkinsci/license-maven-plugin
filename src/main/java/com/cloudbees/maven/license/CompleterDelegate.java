@@ -104,7 +104,6 @@ public class CompleterDelegate {
                 return;
             }
         }
-        IllegalStateException error = new IllegalStateException("Expecting " + name + " but found " + toString(licenses) + " for dependency " + toString(dependency));
     }
 
     private String toString(Collection<License> lics) {
