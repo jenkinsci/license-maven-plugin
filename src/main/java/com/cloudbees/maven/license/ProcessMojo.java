@@ -32,6 +32,7 @@ import org.codehaus.groovy.control.CompilerConfiguration;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -146,11 +147,21 @@ public class ProcessMojo extends AbstractMojo {
             }
         }
 
-        if (generateLicenseXml!=null)
-            comp.add((LicenseScript) shell.parse(getClass().getResourceAsStream("xmlgen.groovy"),"xmlgen.groovy"));
+        if (generateLicenseXml!=null) {
+            try {
+                comp.add((LicenseScript) shell.parse(getClass().getResource("xmlgen.groovy").toURI()));
+            } catch (URISyntaxException | IOException e) {
+                throw new MojoExecutionException("Failed to retrieve xmlgen.groovy", e);
+            }
+        }
 
-        if (generateLicenseHtml!=null)
-            comp.add((LicenseScript) shell.parse(getClass().getResourceAsStream("htmlgen.groovy"),"htmlgen.groovy"));
+        if (generateLicenseHtml!=null) {
+            try {
+                comp.add((LicenseScript) shell.parse(getClass().getResource("htmlgen.groovy").toURI()));
+            } catch (URISyntaxException | IOException e) {
+                throw new MojoExecutionException("Failed to retrieve htmlgen.groovy", e);
+            }
+        }
 
         if (inlineScript!=null)
             comp.add((LicenseScript)shell.parse(inlineScript,"inlineScript"));
