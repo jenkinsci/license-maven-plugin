@@ -10,7 +10,7 @@
 
   <groupId>com.cloudbees</groupId>
   <artifactId>maven-license-plugin</artifactId>
-  <version>1.12-SNAPSHOT</version>
+  <version>1.12</version>
   <packaging>maven-plugin</packaging>
 
   <name>maven-license-plugin Maven Plugin</name>
@@ -24,7 +24,7 @@
     <connection>scm:git:git@github.com:cloudbees/maven-license-plugin.git</connection>
     <developerConnection>scm:git:git@github.com:cloudbees/maven-license-plugin.git</developerConnection>
     <url>http://svn.sonatype.org/spice/tags/oss-parent-7/maven-license-plugin</url>
-    <tag>HEAD</tag>
+    <tag>maven-license-plugin-1.12</tag>
   </scm>
     
 
