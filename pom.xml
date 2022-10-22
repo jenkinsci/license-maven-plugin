@@ -79,5 +79,14 @@
         </configuration>
       </plugin>
     </plugins>
+    <pluginManagement>
+      <plugins>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-javadoc-plugin</artifactId>
+          <version>3.4.1</version> <!-- TODO 2.10.3 in parent seems pretty broken -->
+        </plugin>
+      </plugins>
+    </pluginManagement>
   </build>
 </project>
