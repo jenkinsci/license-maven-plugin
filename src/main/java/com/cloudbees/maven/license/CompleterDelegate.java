@@ -10,8 +10,6 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
-import static java.util.Collections.*;
-
 /**
  * Base class for completer scripts that define convenience methods.
  *
@@ -80,7 +78,7 @@ public class CompleterDelegate {
             throw error;
         }
 
-        dependency.setLicenses(singletonList(to));
+        dependency.setLicenses(Collections.singletonList(to));
     }
 
     /**
@@ -97,10 +95,10 @@ public class CompleterDelegate {
      * From the multi-licensed modules, accept one of them.
      */
     public void accept(String name) {
-        List<License> licenses = new ArrayList<License>(dependency.getLicenses());
+        List<License> licenses = new ArrayList<>(dependency.getLicenses());
         for (License lic : licenses) {
             if (lic.getName().equals(name)) {
-                dependency.setLicenses(new ArrayList<License>(Arrays.asList(lic)));
+                dependency.setLicenses(Collections.singletonList(lic));
                 return;
             }
         }
