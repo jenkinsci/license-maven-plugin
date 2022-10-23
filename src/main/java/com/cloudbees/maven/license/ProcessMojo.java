@@ -22,12 +22,19 @@ import groovy.lang.Script;
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.artifact.factory.ArtifactFactory;
 import org.apache.maven.artifact.repository.ArtifactRepository;
+import org.apache.maven.execution.MavenSession;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
+import org.apache.maven.plugins.annotations.Component;
+import org.apache.maven.plugins.annotations.Mojo;
+import org.apache.maven.plugins.annotations.Parameter;
+import org.apache.maven.plugins.annotations.ResolutionScope;
+import org.apache.maven.project.DefaultProjectBuildingRequest;
 import org.apache.maven.project.MavenProject;
-import org.apache.maven.project.MavenProjectBuilder;
 import org.apache.maven.project.MavenProjectHelper;
+import org.apache.maven.project.ProjectBuilder;
 import org.apache.maven.project.ProjectBuildingException;
+import org.apache.maven.project.ProjectBuildingRequest;
 import org.codehaus.groovy.control.CompilerConfiguration;
 
 import java.io.File;
@@ -35,102 +42,83 @@ import java.io.IOException;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Set;
 
 /**
  * Process license information.
- *
- * @goal process
- * @requiresDependencyResolution runtime
  */
+@Mojo(name = "process", requiresDependencyResolution = ResolutionScope.RUNTIME)
 public class ProcessMojo extends AbstractMojo {
-    /**
-     * @component
-     */
+    @Component
     public MavenProjectHelper projectHelper;
 
     /**
      * The maven project.
-     *
-     * @parameter expression="${project}"
-     * @required
-     * @readonly
      */
+    @Parameter(defaultValue = "${project}", required = true, readonly = true)
     public MavenProject project;
 
-    /**
-     * @component
-     */
-    public MavenProjectBuilder projectBuilder;
+    @Parameter(defaultValue = "${session}", required = true, readonly = true)
+    public MavenSession session;
 
-    /**
-     * @component
-     */
+    @Component
+    public ProjectBuilder projectBuilder;
+
+    @Component
     public ArtifactFactory artifactFactory;
 
-    /**
-     * @parameter expression="${localRepository}"
-     */
+    @Parameter(defaultValue = "${localRepository}")
     public ArtifactRepository localRepository;
 
     /**
      * Specifies completion/generation/filtering scripts.
      *
-     * This can be either a file or a directory. If it's a directory
+     * <p>This can be either a file or a directory. If it's a directory
      * all the files in it are assumed to be completer scripts.
-     *
-     * @parameter expression="${license.script}
      */
+    @Parameter(defaultValue = "${license.script}")
     public File script;
 
     /**
      * Specifies completion/generation/filtering script inline.
-     *
-     * @parameter
      */
+    @Parameter
     public String inlineScript;
 
     /**
      * If true, require all the dependencies to have license information after running
      * completion scripts, or fail the build.
-     *
-     * @parameter
      */
+    @Parameter
     public boolean requireCompleteLicenseInfo;
 
     /**
      * If true, generate "licenses.xml" that captures all the dependencies and its
      * licenses.
-     *
-     * @parameter expression="${license.generateLicenseXml}
      */
+    @Parameter(defaultValue = "${license.generateLicenseXml}")
     public File generateLicenseXml;
 
     /**
      * If true, generate "licenses.html" as the visualization of {@code license.xml}
-     *
-     * @parameter expression="${license.generateLicenseHtml}
      */
+    @Parameter(defaultValue = "${license.generateLicenseHtml}")
     public File generateLicenseHtml;
 
     /**
      * Forbidden switch to disable and bypass all the checks.
-     *
-     * @parameter expression="${license.disableCheck}
      */
+    @Parameter(defaultValue = "${license.disableCheck}")
     public boolean disableCheck;
 
     /**
      * If true, attach the generated XML/HTML as artifacts (to be installed/deployed to Maven repositories.)
-     *
-     * @parameter expression="${license.attach}
      */
+    @Parameter(defaultValue = "${license.attach}")
     public boolean attach;
 
+    @Override
     public void execute() throws MojoExecutionException {
         if (disableCheck)   return;
 
@@ -172,7 +160,7 @@ public class ProcessMojo extends AbstractMojo {
             s.run();    // setup
         }
 
-        List<MavenProject> dependencies = new ArrayList<MavenProject>();
+        List<MavenProject> dependencies = new ArrayList<>();
 
         // run against the project itself
         for (LicenseScript s : comp) {
@@ -180,12 +168,17 @@ public class ProcessMojo extends AbstractMojo {
         }
         dependencies.add(project);
 
-        Map<Artifact,MavenProject> models = new HashMap<Artifact, MavenProject>();
+        Map<Artifact, MavenProject> models = new HashMap<>();
 
-        for (Artifact a : (Set<Artifact>)project.getArtifacts()) {
+        for (Artifact a : project.getArtifacts()) {
             Artifact pom = artifactFactory.createProjectArtifact(a.getGroupId(), a.getArtifactId(), a.getVersion());
             try {
-                models.put(a, projectBuilder.buildFromRepository(pom, project.getRemoteArtifactRepositories(), localRepository));
+                ProjectBuildingRequest buildingRequest =
+                        new DefaultProjectBuildingRequest(session.getProjectBuildingRequest());
+                buildingRequest.setRemoteRepositories(project.getRemoteArtifactRepositories());
+                buildingRequest.setLocalRepository(localRepository);
+                buildingRequest.setProcessPlugins(false); // improve performance
+                models.put(a, projectBuilder.build(pom, buildingRequest).getProject());
             } catch (ProjectBuildingException x) {
                 getLog().warn(x.getMessage());
             }
@@ -197,11 +190,7 @@ public class ProcessMojo extends AbstractMojo {
         }
 
         // filter out optional components
-        for (Iterator<Entry<Artifact, MavenProject>> itr = models.entrySet().iterator(); itr.hasNext();) {
-            Entry<Artifact, MavenProject> e =  itr.next();
-            if (e.getKey().isOptional())
-                itr.remove();
-        }
+        models.entrySet().removeIf(e -> e.getKey().isOptional());
 
         for (MavenProject e : models.values()) {
             // let the completion script intercept and process the licenses
@@ -213,7 +202,7 @@ public class ProcessMojo extends AbstractMojo {
         dependencies.addAll(models.values());
 
         if (requireCompleteLicenseInfo) {
-            List<MavenProject> missing = new ArrayList<MavenProject>();
+            List<MavenProject> missing = new ArrayList<>();
             for (MavenProject d : dependencies) {
                 if (d.getLicenses().isEmpty())
                     missing.add(d);
@@ -244,7 +233,7 @@ public class ProcessMojo extends AbstractMojo {
     }
 
     private List<LicenseScript> parseScripts(File src, GroovyShell shell) throws MojoExecutionException {
-        List<LicenseScript> comp = new ArrayList<LicenseScript>();
+        List<LicenseScript> comp = new ArrayList<>();
         if (src !=null) {
             try {
                 if (src.isDirectory()) {
