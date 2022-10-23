@@ -35,7 +35,7 @@
   
   <scm>
     <connection>scm:git:https://github.com/cloudbees/maven-license-plugin.git</connection>
-    <developerConnection>scm:git:https://github.com/cloudbees/maven-license-plugin.git</developerConnection>
+    <developerConnection>scm:git:git@github.com:cloudbees/maven-license-plugin.git</developerConnection>
     <url>https://github.com/cloudbees/maven-license-plugin</url>
     <tag>maven-license-plugin-1.14</tag>
   </scm>
