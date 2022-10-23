@@ -7,8 +7,23 @@
   <version>1.14-SNAPSHOT</version>
   <packaging>maven-plugin</packaging>
 
-  <name>maven-license-plugin Maven Plugin</name>
-  <url>http://maven.apache.org</url>
+  <name>License Maven Plugin</name>
+  <url>https://github.com/cloudbees/maven-license-plugin</url>
+  <description>Maven plugin to process license information.</description>
+  <licenses>
+    <license>
+      <name>Apache 2.0 License</name>
+      <url>https://opensource.org/licenses/Apache-2.0</url>
+      <distribution>repo</distribution>
+    </license>
+  </licenses>
+  <developers>
+    <developer>
+      <id>jglick</id>
+      <name>Jesse Glick</name>
+      <email>jglick@cloudbees.com</email>
+    </developer>
+  </developers>
 
   <properties>
     <maven-plugin-tools.version>3.6.4</maven-plugin-tools.version>
@@ -20,8 +35,8 @@
   
   <scm>
     <connection>scm:git:https://github.com/cloudbees/maven-license-plugin.git</connection>
-    <developerConnection>scm:git:git@github.com:cloudbees/maven-license-plugin.git</developerConnection>
-    <url>http://svn.sonatype.org/spice/tags/oss-parent-7/maven-license-plugin</url>
+    <developerConnection>scm:git:https://github.com/cloudbees/maven-license-plugin.git</developerConnection>
+    <url>https://github.com/cloudbees/maven-license-plugin</url>
     <tag>HEAD</tag>
   </scm>
     
