@@ -21,7 +21,6 @@ import groovy.lang.GroovyShell;
 import groovy.lang.Script;
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.artifact.factory.ArtifactFactory;
-import org.apache.maven.artifact.repository.ArtifactRepository;
 import org.apache.maven.execution.MavenSession;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
@@ -67,9 +66,6 @@ public class ProcessMojo extends AbstractMojo {
 
     @Component
     public ArtifactFactory artifactFactory;
-
-    @Parameter(defaultValue = "${localRepository}")
-    public ArtifactRepository localRepository;
 
     /**
      * Specifies completion/generation/filtering scripts.
@@ -176,7 +172,6 @@ public class ProcessMojo extends AbstractMojo {
                 ProjectBuildingRequest buildingRequest =
                         new DefaultProjectBuildingRequest(session.getProjectBuildingRequest());
                 buildingRequest.setRemoteRepositories(project.getRemoteArtifactRepositories());
-                buildingRequest.setLocalRepository(localRepository);
                 buildingRequest.setProcessPlugins(false); // improve performance
                 models.put(a, projectBuilder.build(pom, buildingRequest).getProject());
             } catch (ProjectBuildingException x) {
