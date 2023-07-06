@@ -11,11 +11,11 @@
 
   <groupId>io.jenkins.tools.maven</groupId>
   <artifactId>license-maven-plugin</artifactId>
-  <version>1.18-SNAPSHOT</version>
+  <version>${changelist}</version>
   <packaging>maven-plugin</packaging>
 
   <name>License Maven Plugin</name>
-  <url>https://github.com/jenkinsci/maven-license-plugin</url>
+  <url>https://github.com/jenkinsci/license-maven-plugin</url>
   <description>Maven plugin to process license information.</description>
   <licenses>
     <license>
@@ -33,6 +33,7 @@
   </developers>
 
   <properties>
+    <changelist>999999-SNAPSHOT</changelist>
     <maven-plugin-tools.version>3.9.0</maven-plugin-tools.version>
     <maven.version>3.8.1</maven.version>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -43,9 +44,9 @@
   </properties>
   
   <scm>
-    <connection>scm:git:https://github.com/jenkinsci/maven-license-plugin.git</connection>
-    <developerConnection>scm:git:git@github.com:jenkinsci/maven-license-plugin.git</developerConnection>
-    <url>https://github.com/jenkinsci/maven-license-plugin</url>
+    <connection>scm:git:https://github.com/jenkinsci/license-maven-plugin.git</connection>
+    <developerConnection>scm:git:git@github.com:jenkinsci/license-maven-plugin.git</developerConnection>
+    <url>https://github.com/jenkinsci/license-maven-plugin</url>
     <tag>HEAD</tag>
   </scm>
 
