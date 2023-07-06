@@ -15,7 +15,7 @@
   <packaging>maven-plugin</packaging>
   <name>License Maven Plugin</name>
   <description>Maven plugin to process license information.</description>
-  <url>https://github.com/jenkinsci/${project.artifactId}-plugin</url>
+  <url>https://github.com/jenkinsci/${project.artifactId}</url>
 
   <licenses>
     <license>
@@ -46,7 +46,7 @@
 
   <properties>
     <changelist>999999-SNAPSHOT</changelist>
-    <gitHubRepo>jenkinsci/${project.artifactId}-plugin</gitHubRepo>
+    <gitHubRepo>jenkinsci/${project.artifactId}</gitHubRepo>
     <maven-plugin-tools.version>3.9.0</maven-plugin-tools.version>
     <maven.version>3.8.1</maven.version>
     <!-- TODO fix violations -->
