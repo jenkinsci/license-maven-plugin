@@ -4,7 +4,6 @@ import groovy.lang.Closure;
 import org.apache.maven.model.License;
 import org.apache.maven.project.MavenProject;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -89,20 +88,6 @@ public class CompleterDelegate {
         l.setName(name);
         l.setUrl(url);
         return l;
-    }
-
-    /**
-     * From the multi-licensed modules, accept one of them.
-     */
-    public void accept(String name) {
-        List<License> licenses = new ArrayList<>(dependency.getLicenses());
-        for (License lic : licenses) {
-            if (lic.getName().equals(name)) {
-                dependency.setLicenses(Collections.singletonList(lic));
-                return;
-            }
-        }
-        IllegalStateException error = new IllegalStateException("Expecting " + name + " but found " + toString(licenses) + " for dependency " + toString(dependency));
     }
 
     private String toString(Collection<License> lics) {
