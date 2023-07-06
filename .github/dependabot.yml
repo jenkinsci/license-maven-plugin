@@ -5,6 +5,10 @@ updates:
     directory: "/"
     schedule:
       interval: "monthly"
+    ignore:
+      # Aligns with the specified version in other tooling
+      - dependency-name: "org.apache.maven:maven-core"
+      - dependency-name: "org.apache.maven:maven-plugin-api"
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
