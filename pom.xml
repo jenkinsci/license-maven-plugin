@@ -32,6 +32,10 @@
     </developer>
   </developers>
 
+  <prerequisites>
+    <maven>${maven.version}</maven>
+  </prerequisites>
+
   <properties>
     <changelist>999999-SNAPSHOT</changelist>
     <maven-plugin-tools.version>3.9.0</maven-plugin-tools.version>
