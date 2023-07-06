@@ -13,10 +13,10 @@
   <artifactId>license-maven-plugin</artifactId>
   <version>${changelist}</version>
   <packaging>maven-plugin</packaging>
-
   <name>License Maven Plugin</name>
-  <url>https://github.com/jenkinsci/license-maven-plugin</url>
   <description>Maven plugin to process license information.</description>
+  <url>https://github.com/jenkinsci/${project.artifactId}-plugin</url>
+
   <licenses>
     <license>
       <name>Apache 2.0 License</name>
@@ -24,6 +24,7 @@
       <distribution>repo</distribution>
     </license>
   </licenses>
+
   <developers>
     <developer>
       <id>jglick</id>
@@ -36,37 +37,21 @@
     <maven>${maven.version}</maven>
   </prerequisites>
 
+  <scm>
+    <connection>scm:git:https://github.com/${gitHubRepo}.git</connection>
+    <developerConnection>scm:git:git@github.com:${gitHubRepo}.git</developerConnection>
+    <tag>${scmTag}</tag>
+    <url>https://github.com/${gitHubRepo}</url>
+  </scm>
+
   <properties>
     <changelist>999999-SNAPSHOT</changelist>
+    <gitHubRepo>jenkinsci/${project.artifactId}-plugin</gitHubRepo>
     <maven-plugin-tools.version>3.9.0</maven-plugin-tools.version>
     <maven.version>3.8.1</maven.version>
-    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <project.build.outputEncoding>UTF-8</project.build.outputEncoding>
-    <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
     <!-- TODO fix violations -->
     <spotbugs.skip>true</spotbugs.skip>
   </properties>
-  
-  <scm>
-    <connection>scm:git:https://github.com/jenkinsci/license-maven-plugin.git</connection>
-    <developerConnection>scm:git:git@github.com:jenkinsci/license-maven-plugin.git</developerConnection>
-    <url>https://github.com/jenkinsci/license-maven-plugin</url>
-    <tag>${scmTag}</tag>
-  </scm>
-
-  <repositories>
-    <repository>
-      <id>repo.jenkins-ci.org</id>
-      <url>https://repo.jenkins-ci.org/public/</url>
-    </repository>
-  </repositories>
-
-  <pluginRepositories>
-    <pluginRepository>
-      <id>repo.jenkins-ci.org</id>
-      <url>https://repo.jenkins-ci.org/public/</url>
-    </pluginRepository>
-  </pluginRepositories>
 
   <dependencies>
     <dependency>
@@ -100,18 +85,22 @@
     </dependency>
   </dependencies>
 
+  <repositories>
+    <repository>
+      <id>repo.jenkins-ci.org</id>
+      <url>https://repo.jenkins-ci.org/public/</url>
+    </repository>
+  </repositories>
+
+  <pluginRepositories>
+    <pluginRepository>
+      <id>repo.jenkins-ci.org</id>
+      <url>https://repo.jenkins-ci.org/public/</url>
+    </pluginRepository>
+  </pluginRepositories>
+
   <build>
-    <pluginManagement>
-    </pluginManagement>
     <plugins>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-javadoc-plugin</artifactId>
-        <configuration>
-          <doclint>all,-missing</doclint>
-          <locale>en_US</locale>
-        </configuration>
-      </plugin>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-plugin-plugin</artifactId>
