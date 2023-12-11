@@ -1,13 +1,12 @@
 package com.cloudbees.maven.license;
 
 import groovy.lang.Closure;
-import org.apache.maven.model.License;
-import org.apache.maven.project.MavenProject;
-
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import org.apache.maven.model.License;
+import org.apache.maven.project.MavenProject;
 
 /**
  * Base class for completer scripts that define convenience methods.
@@ -34,19 +33,22 @@ public class CompleterDelegate {
      *      ("*" is allowed for wildcard), or a collection/array of them.
      */
     public void match(Object criteria, Closure body) {
-        if (criteria instanceof Object[])
-            criteria = Arrays.asList((Object[])criteria);
-        if (criteria instanceof String)
+        if (criteria instanceof Object[]) {
+            criteria = Arrays.asList((Object[]) criteria);
+        }
+        if (criteria instanceof String) {
             criteria = Collections.singleton(criteria);
+        }
 
         for (String c : (Collection<String>) criteria) {
             String[] tokens = c.split(":");
-            if (tokens.length<2)
-                throw new IllegalArgumentException("Invalid matcher '"+c+"'. Expecting GROUPID:ARTIFACTID");
-            
+            if (tokens.length < 2) {
+                throw new IllegalArgumentException("Invalid matcher '" + c + "'. Expecting GROUPID:ARTIFACTID");
+            }
+
             if (matchToken(dependency.getGroupId(), tokens[0])
-             && matchToken(dependency.getArtifactId(), tokens[1])
-            && (tokens.length<=2 || matchToken(dependency.getVersion(), tokens[2]))) {
+                    && matchToken(dependency.getArtifactId(), tokens[1])
+                    && (tokens.length <= 2 || matchToken(dependency.getVersion(), tokens[2]))) {
                 body.call();
             }
         }
@@ -63,16 +65,19 @@ public class CompleterDelegate {
      */
     public void rewriteLicense(Collection<License> expected, License to) {
         List<License> actual = dependency.getLicenses();
-        IllegalStateException error = new IllegalStateException("Expecting " + toString(expected) + " but found " + toString(actual) + " for dependency " + toString(dependency));
+        IllegalStateException error = new IllegalStateException("Expecting " + toString(expected) + " but found "
+                + toString(actual) + " for dependency " + toString(dependency));
 
-        if (expected.size()!= actual.size())
+        if (expected.size() != actual.size()) {
             throw error;
+        }
 
         OUTER:
         for (License e : expected) {
             for (License a : actual) {
-                if (e.getName().equals(a.getName()))
+                if (e.getName().equals(a.getName())) {
                     continue OUTER;
+                }
             }
             throw error;
         }
@@ -93,14 +98,15 @@ public class CompleterDelegate {
     private String toString(Collection<License> lics) {
         StringBuilder buf = new StringBuilder();
         for (License lic : lics) {
-            if (buf.length()>0) buf.append(',');
+            if (buf.length() > 0) {
+                buf.append(',');
+            }
             buf.append(lic.getName());
         }
-        return "["+buf.toString()+"]";
+        return "[" + buf.toString() + "]";
     }
 
     private String toString(MavenProject p) {
-        return p.getGroupId()+":"+p.getArtifactId()+":"+p.getVersion();
+        return p.getGroupId() + ":" + p.getArtifactId() + ":" + p.getVersion();
     }
-
 }
