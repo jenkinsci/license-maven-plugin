@@ -19,6 +19,13 @@ package com.cloudbees.maven.license;
 import groovy.lang.Binding;
 import groovy.lang.GroovyShell;
 import groovy.lang.Script;
+import java.io.File;
+import java.io.IOException;
+import java.net.URISyntaxException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.artifact.factory.ArtifactFactory;
 import org.apache.maven.execution.MavenSession;
@@ -35,14 +42,6 @@ import org.apache.maven.project.ProjectBuilder;
 import org.apache.maven.project.ProjectBuildingException;
 import org.apache.maven.project.ProjectBuildingRequest;
 import org.codehaus.groovy.control.CompilerConfiguration;
-
-import java.io.File;
-import java.io.IOException;
-import java.net.URISyntaxException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 
 /**
  * Process license information.
@@ -116,44 +115,49 @@ public class ProcessMojo extends AbstractMojo {
 
     @Override
     public void execute() throws MojoExecutionException {
-        if (disableCheck)   return;
+        if (disableCheck) {
+            return;
+        }
 
         GroovyShell shell = createShell(LicenseScript.class);
 
         List<LicenseScript> comp = parseScripts(script, shell);
 
-        if (generateLicenseHtml!=null && generateLicenseXml==null) {// we need XML to be able to generate HTML
+        if (generateLicenseHtml != null && generateLicenseXml == null) { // we need XML to be able to generate HTML
             try {
-                generateLicenseXml = File.createTempFile("license","xml");
+                generateLicenseXml = File.createTempFile("license", "xml");
                 generateLicenseXml.deleteOnExit();
             } catch (IOException e) {
-                throw new MojoExecutionException("Failed to generate a temporary file",e);
+                throw new MojoExecutionException("Failed to generate a temporary file", e);
             }
         }
 
-        if (generateLicenseXml!=null) {
+        if (generateLicenseXml != null) {
             try {
-                comp.add((LicenseScript) shell.parse(getClass().getResource("xmlgen.groovy").toURI()));
+                comp.add((LicenseScript)
+                        shell.parse(getClass().getResource("xmlgen.groovy").toURI()));
             } catch (URISyntaxException | IOException e) {
                 throw new MojoExecutionException("Failed to retrieve xmlgen.groovy", e);
             }
         }
 
-        if (generateLicenseHtml!=null) {
+        if (generateLicenseHtml != null) {
             try {
-                comp.add((LicenseScript) shell.parse(getClass().getResource("htmlgen.groovy").toURI()));
+                comp.add((LicenseScript)
+                        shell.parse(getClass().getResource("htmlgen.groovy").toURI()));
             } catch (URISyntaxException | IOException e) {
                 throw new MojoExecutionException("Failed to retrieve htmlgen.groovy", e);
             }
         }
 
-        if (inlineScript!=null)
-            comp.add((LicenseScript)shell.parse(inlineScript,"inlineScript"));
+        if (inlineScript != null) {
+            comp.add((LicenseScript) shell.parse(inlineScript, "inlineScript"));
+        }
 
         for (LicenseScript s : comp) {
             s.project = project;
             s.mojo = this;
-            s.run();    // setup
+            s.run(); // setup
         }
 
         List<MavenProject> dependencies = new ArrayList<>();
@@ -199,18 +203,21 @@ public class ProcessMojo extends AbstractMojo {
         if (requireCompleteLicenseInfo) {
             List<MavenProject> missing = new ArrayList<>();
             for (MavenProject d : dependencies) {
-                if (d.getLicenses().isEmpty())
+                if (d.getLicenses().isEmpty()) {
                     missing.add(d);
+                }
             }
             if (!missing.isEmpty()) {
                 StringBuilder buf = new StringBuilder("The following dependencies are missing license information:\n");
                 for (MavenProject p : missing) {
-                    buf.append("  "+p.getGroupId()+':'+p.getArtifactId()+':'+p.getVersion());
-                    for (p=p.getParent(); p!=null; p=p.getParent())
-                        buf.append(" -> "+p.getGroupId()+':'+p.getArtifactId()+':'+p.getVersion());
+                    buf.append("  " + p.getGroupId() + ':' + p.getArtifactId() + ':' + p.getVersion());
+                    for (p = p.getParent(); p != null; p = p.getParent()) {
+                        buf.append(" -> " + p.getGroupId() + ':' + p.getArtifactId() + ':' + p.getVersion());
+                    }
                     buf.append('\n');
                 }
-                buf.append("\nAdd/update your completion script to fill them, or run with -Dlicense.disableCheck to bypass the check.");
+                buf.append(
+                        "\nAdd/update your completion script to fill them, or run with -Dlicense.disableCheck to bypass the check.");
                 throw new MojoExecutionException(buf.toString());
             }
         }
@@ -220,25 +227,28 @@ public class ProcessMojo extends AbstractMojo {
         }
 
         if (attach) {
-            if (generateLicenseXml!=null)
-                projectHelper.attachArtifact( project, "license.xml", null, generateLicenseXml );
-            if (generateLicenseHtml!=null)
-                projectHelper.attachArtifact( project, "license.html", null, generateLicenseHtml );
+            if (generateLicenseXml != null) {
+                projectHelper.attachArtifact(project, "license.xml", null, generateLicenseXml);
+            }
+            if (generateLicenseHtml != null) {
+                projectHelper.attachArtifact(project, "license.html", null, generateLicenseHtml);
+            }
         }
     }
 
     private List<LicenseScript> parseScripts(File src, GroovyShell shell) throws MojoExecutionException {
         List<LicenseScript> comp = new ArrayList<>();
-        if (src !=null) {
+        if (src != null) {
             try {
                 if (src.isDirectory()) {
-                    for (File script : src.listFiles())
-                        comp.add((LicenseScript)shell.parse(script));
+                    for (File script : src.listFiles()) {
+                        comp.add((LicenseScript) shell.parse(script));
+                    }
                 } else {
-                    comp.add((LicenseScript)shell.parse(src));
+                    comp.add((LicenseScript) shell.parse(src));
                 }
             } catch (IOException e) {
-                throw new MojoExecutionException("Failed to parse the script: "+ src,e);
+                throw new MojoExecutionException("Failed to parse the script: " + src, e);
             }
         }
         return comp;
@@ -247,6 +257,6 @@ public class ProcessMojo extends AbstractMojo {
     private <T extends Script> GroovyShell createShell(Class<T> baseType) {
         CompilerConfiguration cc = new CompilerConfiguration();
         cc.setScriptBaseClass(baseType.getName());
-        return new GroovyShell(getClass().getClassLoader(),new Binding(),cc);
+        return new GroovyShell(getClass().getClassLoader(), new Binding(), cc);
     }
 }

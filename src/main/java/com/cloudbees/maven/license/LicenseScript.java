@@ -17,8 +17,7 @@ public abstract class LicenseScript extends Script {
     private Closure generator;
     private Closure filter;
 
-    public LicenseScript() {
-    }
+    public LicenseScript() {}
 
     public LicenseScript(Binding binding) {
         super(binding);
@@ -49,15 +48,15 @@ public abstract class LicenseScript extends Script {
     }
 
     private void run(Object delegate, Closure closure) {
-        if (closure !=null) {
+        if (closure != null) {
             closure.setDelegate(delegate);
             closure.run();
         }
     }
 
-//
-// convenience methods exposed to script
-//
+    //
+    // convenience methods exposed to script
+    //
 
     public Log getLog() {
         return mojo.getLog();

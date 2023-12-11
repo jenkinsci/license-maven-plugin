@@ -1,8 +1,7 @@
 package com.cloudbees.maven.license;
 
-import org.apache.maven.project.MavenProject;
-
 import java.util.List;
+import org.apache.maven.project.MavenProject;
 
 /**
  * @author Kohsuke Kawaguchi
