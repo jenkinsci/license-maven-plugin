@@ -52,6 +52,7 @@
     <spotless.check.skip>false</spotless.check.skip>
     <!-- TODO fix violations -->
     <spotbugs.threshold>High</spotbugs.threshold>
+    <ban-junit4-imports.skip>false</ban-junit4-imports.skip>
   </properties>
 
   <dependencies>
@@ -79,8 +80,8 @@
       <scope>provided</scope>
     </dependency>
     <dependency>
-      <groupId>junit</groupId>
-      <artifactId>junit</artifactId>
+      <groupId>org.junit.jupiter</groupId>
+      <artifactId>junit-jupiter</artifactId>
       <scope>test</scope>
     </dependency>
   </dependencies>

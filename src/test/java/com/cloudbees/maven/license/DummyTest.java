@@ -1,11 +1,11 @@
-package org.jvnet.maven.jellydoc;
+package com.cloudbees.maven.license;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
-public class Junit4DummyTest {
+class DummyTest {
 
     @Test
-    public void anything() {
+    void anything() {
         /*
          * Intentionally blank. We just want a test that runs with JUnit so that buildPlugin() works
          * in the Jenkinsfile.
