@@ -1,30 +1,28 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "automerge": true,
   "extends": [
     "config:recommended",
     ":semanticCommitsDisabled"
-  ],
-  "enabledManagers": [
-    "custom.regex"
-  ],
-  "customManagers": [
-    {
-      "customType": "regex",
-      "managerFilePatterns": [
-        "/src/site/site.xml/"
-      ],
-      "matchStrings": [
-        "<version>(?<currentValue>.*?)</version>"
-      ],
-      "depNameTemplate": "org.apache.maven.skins:maven-fluido-skin",
-      "datasourceTemplate": "maven"
-    }
   ],
   "labels": [
     "dependencies"
   ],
   "rebaseWhen": "conflicted",
   "schedule": [
-    "on the first day of the month"
+    "before 3am on the first day of the month"
+  ],
+  "packageRules": [
+    {
+      "matchDatasources": [
+        "maven"
+      ],
+      "matchPackageNames": [
+        "org.apache.maven:maven-core",
+        "org.apache.maven:maven-plugin-api"
+      ],
+      "enabled": false,
+      "description": "Aligns with the specified version in other tooling"
+    }
   ]
 }
