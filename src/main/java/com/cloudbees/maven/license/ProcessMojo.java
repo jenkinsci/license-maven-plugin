@@ -46,7 +46,7 @@ import org.codehaus.groovy.control.CompilerConfiguration;
 /**
  * Process license information.
  */
-@Mojo(name = "process", requiresDependencyResolution = ResolutionScope.RUNTIME)
+@Mojo(name = "process", requiresDependencyResolution = ResolutionScope.RUNTIME, threadSafe = true)
 public class ProcessMojo extends AbstractMojo {
     @Component
     public MavenProjectHelper projectHelper;
